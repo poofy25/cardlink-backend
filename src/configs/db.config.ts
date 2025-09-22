@@ -6,11 +6,7 @@ export default async (
 ): Promise<TypeOrmModuleOptions> => {
   return await Promise.resolve({
     type: 'postgres',
-    host: configService.get('DATABASE_HOST') || 'localhost',
-    port: configService.get('DATABASE_PORT') || 5432,
-    username: configService.get('DATABASE_USERNAME') || 'root',
-    password: configService.get('DATABASE_PASSWORD') || 'root',
-    database: configService.get('DATABASE_NAME') || 'db',
+    url: configService.get('DATABASE_URL'),
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     migrations: [__dirname + '/../db/migrations/*{.ts,.js}'],
     migrationsTableName: 'migrations',

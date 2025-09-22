@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Profile } from 'src/entities/profile.entity';
+import { CardLink } from 'src/entities/card-link.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Profile])],
+  imports: [TypeOrmModule.forFeature([CardLink])],
   providers: [],
   exports: [TypeOrmModule],
 })
-export class ProfilesModule {}
+export class CardLinksModule {}

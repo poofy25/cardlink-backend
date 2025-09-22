@@ -7,10 +7,10 @@ import {
   UpdateDateColumn,
   Index,
 } from 'typeorm';
-import { Profile } from './profile.entity';
+import { CardLink } from './card-link.entity';
 
-@Entity({ name: 'users' })
-export class User {
+@Entity({ name: 'accounts' })
+export class Account {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
@@ -27,8 +27,8 @@ export class User {
   @Column({ type: 'varchar', length: 32, default: 'none' })
   onboardingState!: string;
 
-  @OneToMany(() => Profile, (profile) => profile.owner)
-  profiles!: Profile[];
+  @OneToMany(() => CardLink, (cardLink: CardLink) => cardLink.owner)
+  cardLinks!: CardLink[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

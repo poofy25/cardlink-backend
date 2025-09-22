@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './user/user.module';
-import { ProfilesModule } from './profiles/profiles.module';
+import { AccountsModule } from './accounts/accounts.module';
+import { CardLinksModule } from './cardlinks/cardlinks.module';
 import { LinksModule } from './links/links.module';
 import { MediaModule } from './media/media.module';
 import { CommonModule } from './common/common.module';
@@ -22,8 +22,8 @@ import corsConfig from './configs/cors.config';
       },
     }),
     AuthModule,
-    UsersModule,
-    ProfilesModule,
+    AccountsModule,
+    CardLinksModule,
     LinksModule,
     MediaModule,
     CommonModule,

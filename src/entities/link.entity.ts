@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Profile } from './profile.entity';
+import { CardLink } from './card-link.entity';
 import { LinkClick } from './link-click.entity';
 
 export type LinkKind =
@@ -23,8 +23,8 @@ export class Link {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Profile, (profile) => profile.links, { onDelete: 'CASCADE' })
-  profile!: Profile;
+  @ManyToOne(() => CardLink, (card) => card.links, { onDelete: 'CASCADE' })
+  cardLink!: CardLink;
 
   @Column({ type: 'varchar', length: 160 })
   title!: string;

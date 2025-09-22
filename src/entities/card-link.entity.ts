@@ -2,25 +2,27 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
 } from 'typeorm';
-import { User } from './user.entity';
 import { Link } from './link.entity';
 import { MediaAsset } from './media-asset.entity';
+import { Account } from './account.entity';
 
 export type LayoutMode = 'full_row_buttons' | 'icon_grid' | 'mixed';
 
-@Entity({ name: 'profiles' })
-export class Profile {
+@Entity({ name: 'cardlinks' })
+export class CardLink {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => User, (user) => user.profiles, { onDelete: 'CASCADE' })
-  owner!: User;
+  @ManyToOne(() => Account, (account: Account) => account.cardLinks, {
+    onDelete: 'CASCADE',
+  })
+  owner!: Account;
 
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 64 })
@@ -44,11 +46,11 @@ export class Profile {
   @Column({ type: 'varchar', length: 32, default: 'full_row_buttons' })
   layoutMode!: LayoutMode;
 
-  @OneToMany(() => Link, (link) => link.profile)
-  links!: Link[];
+  @OneToMany(() => Link, (link: Link): CardLink => link.cardLink)
+  links!: Array<Link>;
 
-  @OneToMany(() => MediaAsset, (asset) => asset.profile)
-  mediaAssets!: MediaAsset[];
+  @OneToMany(() => MediaAsset, (asset: MediaAsset): CardLink => asset.cardLink)
+  mediaAssets!: Array<MediaAsset>;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

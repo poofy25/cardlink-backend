@@ -7,15 +7,15 @@ import {
   Index,
 } from 'typeorm';
 import { Link } from './link.entity';
-import { Profile } from './profile.entity';
+import { CardLink } from './card-link.entity';
 
 @Entity({ name: 'link_clicks' })
 export class LinkClick {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Profile, { onDelete: 'CASCADE' })
-  profile!: Profile;
+  @ManyToOne(() => CardLink, { onDelete: 'CASCADE' })
+  cardLink!: CardLink;
 
   @ManyToOne(() => Link, (link) => link.clicks, { onDelete: 'CASCADE' })
   link!: Link;

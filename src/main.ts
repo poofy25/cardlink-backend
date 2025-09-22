@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import corsConfig from './configs/cors.config';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,6 +21,7 @@ async function bootstrap() {
   const apiPrefix = process.env.API_PREFIX ?? '/api/v1';
   app.setGlobalPrefix(apiPrefix.replace(/^\/+/, ''));
   app.enableCors(corsConfig());
+  app.use(cookieParser());
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Card Link API')

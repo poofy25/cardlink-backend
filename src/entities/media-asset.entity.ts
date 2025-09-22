@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Profile } from './profile.entity';
+import { CardLink } from './card-link.entity';
 
 export type MediaKind = 'avatar' | 'banner';
 
@@ -14,10 +14,10 @@ export class MediaAsset {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Profile, (profile) => profile.mediaAssets, {
+  @ManyToOne(() => CardLink, (card) => card.mediaAssets, {
     onDelete: 'CASCADE',
   })
-  profile!: Profile;
+  cardLink!: CardLink;
 
   @Column({ type: 'varchar', length: 32 })
   kind!: MediaKind;
