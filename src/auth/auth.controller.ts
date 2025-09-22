@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -20,6 +21,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthTokensDto } from './dto/auth-tokens.dto';
+import { parseJwtExpirationToMs } from '../utils';
 import type { Response, Request } from 'express';
 
 @ApiTags('auth')
@@ -43,20 +45,28 @@ export class AuthController {
   ) {
     const { accessToken, refreshToken, user } =
       await this.authService.register(dto);
+
+    const refreshTokenMaxAge = parseJwtExpirationToMs(
+      process.env.JWT_REFRESH_EXPIRES ?? '7d',
+    );
+    const accessTokenMaxAge = parseJwtExpirationToMs(
+      process.env.JWT_ACCESS_EXPIRES ?? '15m',
+    );
+
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/api/v1/auth/refresh',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+      maxAge: refreshTokenMaxAge,
     });
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/api/v1/auth/me',
-      maxAge: 15 * 60 * 1000,
+      path: '/',
+      maxAge: accessTokenMaxAge,
     });
     return { accessToken, user };
   }
@@ -78,20 +88,28 @@ export class AuthController {
       dto.email,
       dto.password,
     );
+
+    const refreshTokenMaxAge = parseJwtExpirationToMs(
+      process.env.JWT_REFRESH_EXPIRES ?? '7d',
+    );
+    const accessTokenMaxAge = parseJwtExpirationToMs(
+      process.env.JWT_ACCESS_EXPIRES ?? '15m',
+    );
+
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/api/v1/auth/refresh',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+      maxAge: refreshTokenMaxAge,
     });
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/api/v1/auth/me',
-      maxAge: 15 * 60 * 1000,
+      path: '/',
+      maxAge: accessTokenMaxAge,
     });
     return { accessToken, user };
   }
@@ -100,6 +118,7 @@ export class AuthController {
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token using refresh token cookie' })
   @ApiOkResponse({ description: 'New access token' })
+  @ApiUnauthorizedResponse({ description: 'No refresh token or invalid token' })
   async refresh(@Req() req: Request) {
     const cookiesMap: Record<string, string> | undefined = (
       req as unknown as {
@@ -108,14 +127,19 @@ export class AuthController {
     ).cookies;
     const token = cookiesMap?.['refresh_token'];
     if (!token) {
-      return { accessToken: null };
+      throw new UnauthorizedException('No refresh token provided');
     }
-    const decoded = await this.authService.verifyRefreshToken(token);
-    const tokens = await this.authService.refresh(
-      String(decoded.sub),
-      String(decoded.email),
-    );
-    return { accessToken: tokens.accessToken };
+
+    try {
+      const decoded = await this.authService.verifyRefreshToken(token);
+      const tokens = await this.authService.refresh(
+        String(decoded.sub),
+        String(decoded.email),
+      );
+      return { accessToken: tokens.accessToken };
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
   @HttpCode(HttpStatus.OK)
@@ -139,5 +163,29 @@ export class AuthController {
     }
 
     return { user: decoded };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  @ApiOperation({ summary: 'Logout user and clear cookies' })
+  @ApiOkResponse({ description: 'Successfully logged out' })
+  logout(@Res({ passthrough: true }) res: Response) {
+    // Clear access token cookie
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    // Clear refresh token cookie
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    return { message: 'Successfully logged out' };
   }
 }

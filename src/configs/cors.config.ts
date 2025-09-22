@@ -7,6 +7,8 @@ export default () => {
         'https://cardneto.link',
         'http://localhost:3000',
         'https://localhost:3000',
+        'https://localhost:8000',
+        'http://localhost:8000',
       ];
 
   return {
