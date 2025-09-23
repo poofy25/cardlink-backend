@@ -8,6 +8,7 @@ import * as argon2 from 'argon2';
 import { AccountsService } from '../accounts/accounts.service';
 import { RegisterDto } from './dto/register.dto';
 import { Account } from 'src/entities/account.entity';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,19 @@ export class AuthService {
     private readonly accountsService: AccountsService,
     private readonly jwtService: JwtService,
   ) {}
+
+  async validateAccount(email: string, password: string) {
+    const account = await this.accountsService.findByEmail(email);
+
+    if (!account) {
+      throw new UnauthorizedException('Account is invalid');
+    }
+    const valid = await argon2.verify(String(account.passwordHash), password);
+    if (!valid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    return account;
+  }
 
   async register(payload: RegisterDto) {
     const existing = await this.accountsService.findByEmail(payload.email);
@@ -39,21 +53,23 @@ export class AuthService {
     return { ...tokens, user };
   }
 
-  async login(email: string, password: string) {
-    const account = await this.accountsService.findByEmail(email);
-    if (!account) throw new UnauthorizedException('Invalid credentials');
-    const valid = await argon2.verify(String(account.passwordHash), password);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
-    const tokens = await this.generateTokens(
-      String(account.id),
-      String(account.email),
-    );
-    const user = {
-      id: account.id,
-      email: account.email,
-      displayName: account.displayName,
-    };
-    return { ...tokens, user };
+  async login({ email, password }: LoginDto) {
+    try {
+      const account = await this.validateAccount(email, password);
+
+      const tokens = await this.generateTokens(
+        String(account.id),
+        String(account.email),
+      );
+      const user = {
+        id: account.id,
+        email: account.email,
+        displayName: account.displayName,
+      };
+      return { ...tokens, user };
+    } catch {
+      throw new UnauthorizedException('Invalid credentials');
+    }
   }
 
   async refresh(userId: string, email: string) {

@@ -84,10 +84,8 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { accessToken, refreshToken, user } = await this.authService.login(
-      dto.email,
-      dto.password,
-    );
+    const { accessToken, refreshToken, user } =
+      await this.authService.login(dto);
 
     const refreshTokenMaxAge = parseJwtExpirationToMs(
       process.env.JWT_REFRESH_EXPIRES ?? '7d',
