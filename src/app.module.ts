@@ -10,6 +10,8 @@ import { CommonModule } from './common/common.module';
 import { MailerModule } from './common/mailer.module';
 import databaseConfig from './configs/db.config';
 import corsConfig from './configs/cors.config';
+import { GlobalAuthGuard } from './auth/guards/global-auth.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -28,6 +30,12 @@ import corsConfig from './configs/cors.config';
     MediaModule,
     CommonModule,
     MailerModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: GlobalAuthGuard,
+    },
   ],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from 'src/entities/account.entity';
@@ -20,12 +20,17 @@ export class AccountsService {
     passwordHash: string;
     displayName: string;
   }): Promise<Account> {
-    const account = this.accountRepository.create({
-      email: params.email,
-      passwordHash: params.passwordHash,
-      displayName: params.displayName,
-      onboardingState: 'none',
-    });
-    return this.accountRepository.save(account);
+    try {
+      const account = this.accountRepository.create({
+        email: params.email,
+        passwordHash: params.passwordHash,
+        displayName: params.displayName,
+        onboardingState: 'none',
+      });
+      return this.accountRepository.save(account);
+    } catch (error: unknown) {
+      console.error(error);
+      throw new InternalServerErrorException('Failed to create account');
+    }
   }
 }
