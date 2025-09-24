@@ -18,6 +18,16 @@ export class UpdateCardLinkDto {
   @IsString()
   bio?: string;
 
+  @ApiProperty({ example: 'Software Engineer', required: false })
+  @IsOptional()
+  @IsString()
+  jobTitle?: string;
+
+  @ApiProperty({ example: 'Google', required: false })
+  @IsOptional()
+  @IsString()
+  company?: string;
+
   @ApiProperty({ example: 'https://www.example.com', required: false })
   @IsOptional()
   @IsString()

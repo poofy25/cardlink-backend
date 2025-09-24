@@ -34,6 +34,11 @@ export class CardLink {
   @Column({ type: 'varchar', length: 280, nullable: true })
   bio!: string | null;
 
+  @Column({ type: 'varchar', length: 60, nullable: true })
+  jobTitle!: string | null;
+  @Column({ type: 'varchar', length: 60, nullable: true })
+  company!: string | null;
+
   @Column({ type: 'varchar', length: 512, nullable: true })
   avatarUrl!: string | null;
 
