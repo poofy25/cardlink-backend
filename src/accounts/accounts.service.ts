@@ -27,6 +27,7 @@ export class AccountsService {
       },
       relations: {
         cardLinks: true,
+        activeCardLink: true,
       },
     });
     return found ?? null;
@@ -48,6 +49,20 @@ export class AccountsService {
     } catch (error: unknown) {
       console.error(error);
       throw new InternalServerErrorException('Failed to create account');
+    }
+  }
+
+  async setActiveCardLink(
+    accountId: string,
+    cardLinkId: string,
+  ): Promise<void> {
+    try {
+      await this.accountRepository.update(accountId, {
+        activeCardLink: { id: cardLinkId },
+      });
+    } catch (error: unknown) {
+      console.error(error);
+      throw new InternalServerErrorException('Failed to set active card link');
     }
   }
 }
