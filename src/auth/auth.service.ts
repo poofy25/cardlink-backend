@@ -18,7 +18,7 @@ export class AuthService {
   ) {}
 
   async validateAccount(email: string, password: string) {
-    const account = await this.accountsService.findByEmail(email);
+    const account = await this.accountsService.findByEmail(email, true);
 
     if (!account) {
       throw new UnauthorizedException('Account is invalid');

@@ -27,7 +27,7 @@ export class Account {
   @Column({ type: 'varchar', length: 32, default: 'none' })
   onboardingState!: string;
 
-  @OneToMany(() => CardLink, (cardLink: CardLink) => cardLink.owner)
+  @OneToMany(() => CardLink, (cardLink) => cardLink.owner, { cascade: true })
   cardLinks!: CardLink[];
 
   @CreateDateColumn({ type: 'timestamptz' })

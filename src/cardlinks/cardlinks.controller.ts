@@ -18,6 +18,16 @@ export class CardLinksController {
     return this.cardLinksService.getAll(req.user.id);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a cardlink by id' })
+  @ApiOkResponse({ description: 'Cardlink', type: CardLink })
+  async getById(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<CardLink> {
+    return this.cardLinksService.getById(req.user.id, id);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a new cardlink' })
   @ApiBody({ type: CreateCardLinkDto })

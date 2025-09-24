@@ -23,16 +23,20 @@ import { LoginDto } from './dto/login.dto';
 import { AuthTokensDto } from './dto/auth-tokens.dto';
 import { parseJwtExpirationToMs } from '../utils';
 import type { Response, Request } from 'express';
+import type { AuthenticatedRequest } from 'src/types/request.types';
 import { Public } from './decorators/public.decorator';
+import { AccountsService } from 'src/accounts/accounts.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly accountsService: AccountsService,
+  ) {}
 
   @Public()
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user with email and password' })
   @ApiBody({ type: RegisterDto })
   @ApiOkResponse({
     description: 'JWT access and refresh tokens',
@@ -76,7 +80,6 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login with email and password' })
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({
     description: 'JWT access and refresh tokens',
@@ -147,23 +150,9 @@ export class AuthController {
   @Get('me')
   @ApiOperation({ summary: 'Get current user' })
   @ApiOkResponse({ description: 'Current user' })
-  async me(@Req() req: Request) {
-    const cookiesMap: Record<string, string> | undefined = (
-      req as unknown as {
-        cookies?: Record<string, string>;
-      }
-    ).cookies;
-    const token = cookiesMap?.['access_token'];
-    if (!token) {
-      return { user: null };
-    }
-    const decoded = await this.authService.getUserByAccessToken(token);
-
-    if (!decoded) {
-      return { user: null };
-    }
-
-    return { user: decoded };
+  async me(@Req() req: AuthenticatedRequest) {
+    const user = await this.accountsService.findByEmail(req.user.email);
+    return { user };
   }
 
   @HttpCode(HttpStatus.OK)

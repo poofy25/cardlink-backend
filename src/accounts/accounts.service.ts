@@ -10,8 +10,25 @@ export class AccountsService {
     private readonly accountRepository: Repository<Account>,
   ) {}
 
-  async findByEmail(email: string): Promise<Account | null> {
-    const found = await this.accountRepository.findOne({ where: { email } });
+  async findByEmail(
+    email: string,
+    includePasswordHash = false,
+  ): Promise<Account | null> {
+    const found = await this.accountRepository.findOne({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        onboardingState: true,
+        createdAt: true,
+        updatedAt: true,
+        ...(includePasswordHash && { passwordHash: true }),
+      },
+      relations: {
+        cardLinks: true,
+      },
+    });
     return found ?? null;
   }
 

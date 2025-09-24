@@ -46,10 +46,16 @@ export class CardLink {
   @Column({ type: 'varchar', length: 32, default: 'full_row_buttons' })
   layoutMode!: LayoutMode;
 
-  @OneToMany(() => Link, (link: Link): CardLink => link.cardLink)
-  links!: Array<Link>;
+  @OneToMany(() => Link, (link) => link.cardLink, { cascade: true })
+  links: Link[];
 
-  @OneToMany(() => MediaAsset, (asset: MediaAsset): CardLink => asset.cardLink)
+  @OneToMany(
+    () => MediaAsset,
+    (asset: MediaAsset): CardLink => asset.cardLink,
+    {
+      cascade: true,
+    },
+  )
   mediaAssets!: Array<MediaAsset>;
 
   @CreateDateColumn({ type: 'timestamptz' })

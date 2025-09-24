@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CardLink } from 'src/entities/card-link.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateCardLinkDto } from './dto/create.dto';
 import { UpdateCardLinkDto } from './dto/update.dto';
 
@@ -14,6 +14,7 @@ export class CardLinksService {
   constructor(
     @InjectRepository(CardLink)
     private readonly cardLinkRepository: Repository<CardLink>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async getAll(userId: string): Promise<CardLink[]> {
@@ -24,6 +25,9 @@ export class CardLinksService {
             id: userId,
           },
         },
+        relations: {
+          links: true,
+        },
       });
     } catch (error: unknown) {
       console.error(error);
@@ -31,16 +35,39 @@ export class CardLinksService {
     }
   }
 
+  async getById(userId: string, id: string): Promise<CardLink> {
+    try {
+      const cardLink = await this.cardLinkRepository.findOne({
+        relations: {
+          links: true,
+        },
+        where: {
+          owner: { id: userId },
+          id: id,
+        },
+      });
+      if (!cardLink) {
+        throw new NotFoundException('Card link not found');
+      }
+      return cardLink;
+    } catch (error: unknown) {
+      console.error(error);
+      throw new InternalServerErrorException('Failed to get card link');
+    }
+  }
+
   async create(userId: string, dto: CreateCardLinkDto): Promise<CardLink> {
     try {
-      const cardLink = this.cardLinkRepository.create({
-        owner: {
-          id: userId,
-        },
-        ...dto,
+      return this.dataSource.transaction(async (manager) => {
+        const cardLink = manager.create(CardLink, {
+          ...dto,
+          owner: {
+            id: userId,
+          },
+          links: dto.links,
+        });
+        return manager.save(cardLink);
       });
-
-      return this.cardLinkRepository.save(cardLink);
     } catch (error: unknown) {
       console.error(error);
       throw new InternalServerErrorException('Failed to create card link');
