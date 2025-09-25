@@ -31,8 +31,12 @@ export class Account {
   @OneToMany(() => CardLink, (cardLink) => cardLink.owner, { cascade: true })
   cardLinks!: CardLink[];
 
-  @ManyToOne(() => CardLink, (cardLink) => cardLink.owner, { cascade: true })
-  activeCardLink!: CardLink;
+  @ManyToOne(() => CardLink, (cardLink) => cardLink.owner, { 
+    cascade: true,
+    nullable: true,
+    onDelete: 'SET NULL'
+  })
+  activeCardLink!: CardLink | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

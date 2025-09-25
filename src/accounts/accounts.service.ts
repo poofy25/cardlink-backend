@@ -57,9 +57,15 @@ export class AccountsService {
     cardLinkId: string,
   ): Promise<void> {
     try {
-      await this.accountRepository.update(accountId, {
-        activeCardLink: { id: cardLinkId },
-      });
+      if (cardLinkId === '') {
+        await this.accountRepository.update(accountId, {
+          activeCardLink: null,
+        });
+      } else {
+        await this.accountRepository.update(accountId, {
+          activeCardLink: { id: cardLinkId },
+        });
+      }
     } catch (error: unknown) {
       console.error(error);
       throw new InternalServerErrorException('Failed to set active card link');

@@ -208,4 +208,45 @@ export class CardLinksService {
 
     return suggestions.slice(0, 3); // Return max 3 suggestions
   }
+
+  async delete(id: string, userId: string): Promise<{ deleted: boolean }> {
+    try {
+      // First, check if the card link being deleted is the active one
+      const cardLinkToDelete = await this.cardLinkRepository.findOne({
+        where: {
+          id: id,
+          owner: { id: userId },
+        },
+      });
+
+      if (!cardLinkToDelete) {
+        throw new InternalServerErrorException('Card link not found');
+      }
+
+      // Clear the activeCardLink if it's the one being deleted
+      await this.accountsService.setActiveCardLink(userId, '');
+
+      // Now delete the card link
+      await this.cardLinkRepository.delete({
+        id: id,
+        owner: { id: userId },
+      });
+
+      // Set a new active card link if there are any remaining
+      const remainingCardLink = await this.cardLinkRepository.findOne({
+        where: {
+          owner: { id: userId },
+        },
+      });
+
+      if (remainingCardLink) {
+        await this.accountsService.setActiveCardLink(userId, remainingCardLink.id);
+      }
+
+      return { deleted: true };
+    } catch (error: unknown) {
+      console.error(error);
+      throw new InternalServerErrorException('Failed to delete card link');
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -93,5 +94,12 @@ export class CardLinksController {
     @Body() dto: UpdateCardLinkDto,
   ): Promise<CardLink> {
     return this.cardLinksService.update(req.user.id, id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a cardlink' })
+  @ApiOkResponse({ description: 'Deleted cardlink', type: CardLink })
+  async delete(@Param('id') id: string, @Req() req: AuthenticatedRequest): Promise<{ deleted: boolean }> {
+    return this.cardLinksService.delete(id, req.user.id);
   }
 }

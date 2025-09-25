@@ -1,12 +1,12 @@
 import {
   IsString,
-  IsUrl,
   IsOptional,
   IsBoolean,
   MaxLength,
   Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { ValidateLinkMeta } from '../decorators/validate-link-meta.decorator';
 
 export class CreateLinkDto {
   @ApiProperty({
@@ -15,17 +15,19 @@ export class CreateLinkDto {
     maxLength: 160,
   })
   @IsString()
+  @IsOptional()
   @MaxLength(160)
   title!: string;
 
   @ApiProperty({
     example: 'https://myportfolio.com',
-    description: 'URL the link points to',
+    description: 'URL the link points to (supports http, https, mailto, tel, etc.)',
     maxLength: 1024,
   })
-  @IsUrl({}, { message: 'url must be a valid URL' })
+  @IsOptional()
+  @IsString()
   @MaxLength(1024)
-  url!: string;
+  url?: string;
 
   @ApiProperty({
     example: 0,
@@ -71,5 +73,6 @@ export class CreateLinkDto {
     required: false,
   })
   @IsOptional()
+  @ValidateLinkMeta()
   meta?: Record<string, unknown>;
 }

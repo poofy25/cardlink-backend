@@ -20,7 +20,7 @@ export class Link {
   cardLink!: CardLink;
 
   // Display label / title
-  @Column({ type: 'varchar', length: 160 })
+  @Column({ type: 'varchar', length: 160, nullable: true })
   title!: string;
 
   // Default clickable URL (optional for map/address)
