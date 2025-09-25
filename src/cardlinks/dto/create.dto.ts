@@ -13,18 +13,22 @@ export class CreateCardLinkDto {
   name!: string;
 
   @ApiProperty({ example: 'I am a software engineer' })
+  @IsOptional()
   @IsString()
   bio?: string;
 
   @ApiProperty({ example: 'Software Engineer' })
+  @IsOptional()
   @IsString()
   jobTitle?: string;
 
   @ApiProperty({ example: 'Google' })
+  @IsOptional()
   @IsString()
   company?: string;
 
   @ApiProperty({ example: 'https://www.example.com' })
+  @IsOptional()
   @IsString()
   avatarUrl?: string;
 

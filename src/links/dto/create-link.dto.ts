@@ -3,12 +3,10 @@ import {
   IsUrl,
   IsOptional,
   IsBoolean,
-  IsEnum,
   MaxLength,
   Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import type { LinkKind } from '../../entities/link.entity';
 
 export class CreateLinkDto {
   @ApiProperty({
@@ -50,12 +48,11 @@ export class CreateLinkDto {
   @ApiProperty({
     example: 'custom',
     description: 'Type of link',
-    enum: ['custom', 'social', 'email', 'phone', 'address', 'map'],
     default: 'custom',
   })
   @IsOptional()
-  @IsEnum(['custom', 'social', 'email', 'phone', 'address', 'map'])
-  kind?: LinkKind;
+  @IsString()
+  type?: string;
 
   @ApiProperty({
     example: 'github',
