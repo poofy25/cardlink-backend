@@ -1,8 +1,10 @@
-import { Body, Controller, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put, Req } from '@nestjs/common';
 import { LinksService } from './links.service';
 import { BaseLinkDto } from './dto/base-link.dto';
 import { Link } from 'src/entities/link.entity';
 import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ReorderLinksDto } from './dto/reorder-links.dto';
+import type { AuthenticatedRequest } from 'src/types/request.types';
 
 @Controller('cardlinks/:id/links')
 export class LinksController {
@@ -17,6 +19,18 @@ export class LinksController {
     @Body() dto: BaseLinkDto,
   ): Promise<Link> {
     return this.linksService.create({ id, dto });
+  }
+
+  @Put('/reorder')
+  @ApiOperation({ summary: 'Update links for a cardlink' })
+  @ApiBody({ type: ReorderLinksDto })
+  @ApiOkResponse({ description: 'Updated links', type: [Link] })
+  async reorderLinks(
+    @Param('id') cardLinkId: string,
+    @Body() dto: ReorderLinksDto,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<Link[]> {
+    return this.linksService.reorderLinks(cardLinkId, dto, req.user.id);
   }
 
   @Put(':linkId')

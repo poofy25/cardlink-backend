@@ -5,10 +5,12 @@ import { LinkClick } from 'src/entities/link-click.entity';
 import { LinksService } from './links.service';
 import { LinksController } from './links.controller';
 import { CommonModule } from 'src/common/common.module';
+import { CardLink } from 'src/entities/card-link.entity';
+import { LinkValidatorService } from 'src/common/link-validator.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Link, LinkClick]), CommonModule],
-  providers: [LinksService],
+  imports: [TypeOrmModule.forFeature([Link, LinkClick, CardLink]), CommonModule],
+  providers: [LinksService, LinkValidatorService],
   controllers: [LinksController],
   exports: [TypeOrmModule],
 })
