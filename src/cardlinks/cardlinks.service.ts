@@ -43,6 +43,7 @@ export class CardLinksService {
 
   async getById(userId: string, id: string): Promise<CardLink> {
     try {
+      // Fetch the card link and order the links relation by orderIndex (ascending)
       const cardLink = await this.cardLinkRepository.findOne({
         relations: {
           links: true,
@@ -50,6 +51,11 @@ export class CardLinksService {
         where: {
           owner: { id: userId },
           id: id,
+        },
+        order: {
+          links: {
+            orderIndex: 'ASC',
+          },
         },
       });
 

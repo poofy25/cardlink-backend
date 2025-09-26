@@ -19,11 +19,11 @@ function validateTitle(title?: string): string | undefined {
   if (!title || title.trim().length === 0) {
     return 'Title is required';
   }
-  
+
   if (title.length > 160) {
     return 'Title must be 160 characters or less';
   }
-  
+
   return undefined;
 }
 
@@ -45,7 +45,6 @@ export interface ProcessedLinkResponse {
 
 @Injectable()
 export class LinkValidatorService {
-
   /**
    * Processes a single link by transforming the URL and determining completion status
    * @param dto - The link data to process
@@ -54,17 +53,24 @@ export class LinkValidatorService {
   processLink(dto: BaseLinkDto): ProcessedLinkResponse {
     // Get rawInput from meta.rawInput instead of url field
     const rawInput = (dto.meta?.rawInput as string) || '';
-    
+
     // Validate title
     const titleError = validateTitle(dto.title);
-    
+
     // Transform and validate rawInput in one step
-    const transformResult = dto.type && rawInput ? transformToUrl(dto.type, rawInput) : { url: null, validationError: rawInput ? 'Input is required' : undefined };
-    
+    const transformResult =
+      dto.type && rawInput
+        ? transformToUrl(dto.type, rawInput)
+        : {
+            url: null,
+            validationError: rawInput ? 'Input is required' : undefined,
+          };
+
     // Create validation errors object
     const validationErrors: ValidationErrors = {};
     if (titleError) {
-      validationErrors.title = titleError;
+      // TODO: Uncomment this for now we skip title validation becuase i dont know if it is needed
+      //   validationErrors.title = titleError;
     }
     if (transformResult.validationError) {
       validationErrors.rawInput = transformResult.validationError;
@@ -80,11 +86,7 @@ export class LinkValidatorService {
     }
 
     // Determine if the link is complete based on title and rawInput
-    const isComplete = isLinkComplete(
-      dto.type,
-      finalTitle,
-      rawInput,
-    );
+    const isComplete = isLinkComplete(dto.type, finalTitle, rawInput);
 
     const isActive = !isComplete ? false : dto.isActive;
 
@@ -92,12 +94,13 @@ export class LinkValidatorService {
     const meta = {
       ...dto.meta,
       rawInput: rawInput,
-      validationErrors: Object.keys(validationErrors).length > 0 ? validationErrors : undefined,
+      validationErrors:
+        Object.keys(validationErrors).length > 0 ? validationErrors : undefined,
     };
 
     const processedLink: ProcessedLink = {
       title: finalTitle,
-      url: transformResult.url || "",
+      url: transformResult.url || '',
       isIncomplete: !isComplete,
       type: dto.type,
       orderIndex: dto.orderIndex,
@@ -116,7 +119,7 @@ export class LinkValidatorService {
    * @returns Array of processed link responses
    */
   processLinks(links: BaseLinkDto[]): ProcessedLinkResponse[] {
-    return links.map(link => this.processLink(link));
+    return links.map((link) => this.processLink(link));
   }
 
   /**
@@ -138,5 +141,4 @@ export class LinkValidatorService {
     const config = LinkConfig[type];
     return config?.displayName;
   }
-
 }

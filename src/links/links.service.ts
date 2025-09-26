@@ -59,12 +59,7 @@ export class LinksService {
       const processedLink = this.linkValidatorService.processLink(
         link as unknown as BaseLinkDto,
       ).processedLink;
-
-      // // Update with processed values (excluding type and url)
-      // link.title = processedLink.title;
-      // link.isIncomplete = processedLink.isIncomplete;
-      // link.meta = processedLink.meta || null; // Include the processed meta with rawInput
-
+   
       Object.assign(link, processedLink);
 
       return this.linksRepository.save(link);

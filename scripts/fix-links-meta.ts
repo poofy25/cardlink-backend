@@ -121,15 +121,20 @@ async function fixLinksMeta(options: FixOptions = { dryRun: false, batchSize: 10
           const updates: Partial<Link> = {};
           let needsUpdate = false;
 
-          // 1. Update meta data - check if cleaned meta is different from original
+          // 1. Update meta data - compare processed result with original database meta
           const newMeta = processedLink.meta;
-          const originalMetaChanged = JSON.stringify(cleanedMeta) !== JSON.stringify(link.meta);
-          const processedMetaChanged = JSON.stringify(newMeta) !== JSON.stringify(cleanedMeta);
+          const metaChanged = JSON.stringify(newMeta) !== JSON.stringify(link.meta);
           
-          if (originalMetaChanged || processedMetaChanged) {
+          if (metaChanged) {
             updates.meta = newMeta;
             needsUpdate = true;
             console.log(`   📝 Meta needs update for link ${link.id}`);
+            
+            // Check what specifically changed
+            const originalMeta = link.meta || {};
+            const cleanedMeta = validateAndCleanMeta(link.type as LinkType, link.meta);
+            const originalMetaChanged = JSON.stringify(cleanedMeta) !== JSON.stringify(originalMeta);
+            const processedMetaChanged = JSON.stringify(newMeta) !== JSON.stringify(cleanedMeta);
             
             if (originalMetaChanged) {
               console.log(`      Cleaned invalid fields from meta`);
