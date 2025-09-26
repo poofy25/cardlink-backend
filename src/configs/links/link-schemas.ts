@@ -1,26 +1,38 @@
-// Simplified link types - just the essentials
-export const LinkTypes = [
-  'instagram',
-  'email', 
-  'phone',
-  'website',
-  'custom-link'
-] as const;
-
-export type LinkType = typeof LinkTypes[number];
-
-// URL patterns are now defined in link-config.ts - no duplication!
-
 import { z } from 'zod';
+// Simplified link types - just the essentials
+export enum LinkTypes {
+  INSTAGRAM = 'instagram',
+  EMAIL = 'email',
+  PHONE = 'phone',
+  WEBSITE = 'website',
+  CUSTOM_LINK = 'custom-link',
+}
 
-// Simple validation for basic link fields
-export const LinkValidationSchema = z.object({
-  title: z.string().min(1).max(160),
-  url: z.string().url(),
-  type: z.enum(LinkTypes as unknown as [string, ...string[]]),
-  orderIndex: z.number().min(0).optional(),
-  isActive: z.boolean().optional(),
-  meta: z.record(z.string(), z.unknown()).optional()
+export type LinkType = LinkTypes;
+
+// Base meta schema that all link types share
+export const BaseMetaSchema = z.object({
+  rawInput: z.string().min(1).trim(),
 });
 
-// No special metadata schemas needed for the simplified link types
+// Meta schemas for different link types
+export const LinkMetaSchemas: Record<LinkType, z.ZodObject<z.ZodRawShape>> = {
+  [LinkTypes.INSTAGRAM]: BaseMetaSchema.extend({
+    // Instagram-specific meta fields can be added here
+  }),
+  [LinkTypes.EMAIL]: BaseMetaSchema.extend({
+    // Email-specific meta fields can be added here
+  }),
+  [LinkTypes.PHONE]: BaseMetaSchema.extend({
+    // Phone-specific meta fields can be added here
+  }),
+  [LinkTypes.WEBSITE]: BaseMetaSchema.extend({
+    // Website-specific meta fields can be added here
+  }),
+  [LinkTypes.CUSTOM_LINK]: BaseMetaSchema.extend({
+    // Custom link-specific meta fields can be added here
+  }),
+} as const;
+
+// Type for validated meta data
+export type ValidatedLinkMeta = z.infer<typeof BaseMetaSchema>;

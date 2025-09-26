@@ -91,7 +91,7 @@ export class CardLinksService {
         // Process links if they exist
         let processedLinks = dto.links;
         if (dto.links && dto.links.length > 0) {
-          processedLinks = this.linkValidatorService.processLinks(dto.links);
+          processedLinks = this.linkValidatorService.processLinks(dto.links).map(response => response.processedLink);
         }
 
         const cardLink = manager.create(CardLink, {

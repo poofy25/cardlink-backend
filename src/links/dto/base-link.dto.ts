@@ -1,14 +1,17 @@
 import {
   IsString,
   IsOptional,
-  IsBoolean,
   MaxLength,
   Min,
+  IsEnum,
+  IsNotEmpty,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ValidateLinkMeta } from '../decorators/validate-link-meta.decorator';
+import { LinkTypes } from 'src/configs/links/link-schemas';
 
-export class CreateLinkDto {
+export abstract class BaseLinkDto {
   @ApiProperty({
     example: 'My Portfolio',
     description: 'Title/name of the link',
@@ -17,17 +20,7 @@ export class CreateLinkDto {
   @IsString()
   @IsOptional()
   @MaxLength(160)
-  title!: string;
-
-  @ApiProperty({
-    example: 'https://myportfolio.com',
-    description: 'URL the link points to (supports http, https, mailto, tel, etc.)',
-    maxLength: 1024,
-  })
-  @IsOptional()
-  @IsString()
-  @MaxLength(1024)
-  url?: string;
+  title?: string;
 
   @ApiProperty({
     example: 0,
@@ -39,6 +32,16 @@ export class CreateLinkDto {
   orderIndex?: number;
 
   @ApiProperty({
+    example: 'custom-link',
+    description: 'Type of link',
+    enum: LinkTypes,
+    default: 'custom-link',
+  })
+  @IsNotEmpty()
+  @IsEnum(LinkTypes)
+  type: LinkTypes;
+
+  @ApiProperty({
     example: true,
     description: 'Whether the link is active/visible',
     default: true,
@@ -48,31 +51,12 @@ export class CreateLinkDto {
   isActive?: boolean;
 
   @ApiProperty({
-    example: 'custom',
-    description: 'Type of link',
-    default: 'custom',
-  })
-  @IsOptional()
-  @IsString()
-  type?: string;
-
-  @ApiProperty({
-    example: 'github',
-    description: 'Icon key for the link',
-    maxLength: 64,
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  @MaxLength(64)
-  iconKey?: string;
-
-  @ApiProperty({
     example: { color: '#3B82F6', description: 'GitHub profile' },
     description: 'Additional metadata for the link',
     required: false,
   })
   @IsOptional()
+  // THIS DECORATOR MIGHT NOT EVEN WORK
   @ValidateLinkMeta()
   meta?: Record<string, unknown>;
 }

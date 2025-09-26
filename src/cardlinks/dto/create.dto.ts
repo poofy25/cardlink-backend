@@ -1,7 +1,7 @@
 import { IsString, IsArray, ValidateNested, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { CreateLinkDto } from '../../links/dto/create-link.dto';
+import { BaseLinkDto } from '../../links/dto/base-link.dto';
 
 export class CreateCardLinkDto {
   @ApiProperty({ example: 'john-doe' })
@@ -36,28 +36,34 @@ export class CreateCardLinkDto {
     example: [
       {
         title: 'My Portfolio',
-        url: 'https://myportfolio.com',
-        kind: 'custom',
-        iconKey: 'portfolio',
+        type: 'custom-link',
         orderIndex: 0,
         isActive: true,
+        meta: {
+          rawInput: 'https://myportfolio.com',
+          color: '#3B82F6',
+          description: 'My personal portfolio website'
+        }
       },
       {
         title: 'GitHub',
-        url: 'https://github.com/username',
-        kind: 'social',
-        iconKey: 'github',
+        type: 'custom-link',
         orderIndex: 1,
         isActive: true,
+        meta: {
+          rawInput: 'https://github.com/username',
+          color: '#24292e',
+          description: 'My GitHub profile'
+        }
       },
     ],
     description: 'Array of links to be created with the card link',
-    type: [CreateLinkDto],
+    type: [BaseLinkDto],
     required: false,
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateLinkDto)
-  links?: CreateLinkDto[];
+  @Type(() => BaseLinkDto)
+  links?: BaseLinkDto[];
 }

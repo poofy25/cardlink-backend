@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import corsConfig from './configs/cors.config';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import { AllExceptionsFilter } from './common/exception-filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +18,8 @@ async function bootstrap() {
       },
     }),
   );
+
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   const apiPrefix = process.env.API_PREFIX ?? '/api/v1';
   app.setGlobalPrefix(apiPrefix.replace(/^\/+/, ''));

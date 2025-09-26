@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLinkDto } from '../links/dto/create-link.dto';
+import { BaseLinkDto } from '../links/dto/base-link.dto';
 import { isLinkComplete } from '../configs/links/link-validator';
 import { transformToUrl } from '../configs/links/url-transformer';
 import { LinkType } from '../configs/links/link-schemas';
@@ -9,29 +9,37 @@ export interface ProcessedLink {
   title: string;
   url: string | undefined;
   isIncomplete: boolean;
-  type?: string;
+  type: LinkType;
   orderIndex?: number;
   isActive?: boolean;
-  iconKey?: string;
   meta?: Record<string, unknown>;
+}
+
+export interface ProcessedLinkResponse {
+  processedLink: ProcessedLink;
+  error?: string;
 }
 
 @Injectable()
 export class LinkValidatorService {
+
   /**
    * Processes a single link by transforming the URL and determining completion status
    * @param dto - The link data to process
-   * @returns Processed link with transformed URL and completion status
+   * @returns Processed link response with processed link and optional error
    */
-  processLink(dto: CreateLinkDto): ProcessedLink {
-    const rawInput = dto.url || '';
+  processLink(dto: BaseLinkDto): ProcessedLinkResponse {
+    // Get rawInput from meta.rawInput instead of url field
+    const rawInput = (dto.meta?.rawInput as string) || '';
     
     // Start with empty URL - only set if rawInput successfully transforms
-    let finalUrl: string | undefined = undefined;
+    let finalUrl: string | null = null;
     
     // Try to transform the rawInput into a valid URL
     if (dto.type && rawInput) {
-      const transformedUrl = transformToUrl(dto.type as LinkType, rawInput);
+      const transformedUrl = transformToUrl(dto.type, rawInput);
+
+      console.log('transformedUrl', transformedUrl);
       // Only set the URL if transformation was successful
       if (transformedUrl) {
         finalUrl = transformedUrl;
@@ -41,7 +49,7 @@ export class LinkValidatorService {
     // Set title to displayName from config if no title provided
     let finalTitle = dto.title || '';
     if (!finalTitle && dto.type) {
-      const config = LinkConfig[dto.type as LinkType];
+      const config = LinkConfig[dto.type];
       if (config) {
         finalTitle = config.displayName;
       }
@@ -49,10 +57,12 @@ export class LinkValidatorService {
 
     // Determine if the link is complete based on title and URL
     const isComplete = isLinkComplete(
-      dto.type as LinkType,
+      dto.type,
       finalTitle,
       finalUrl || undefined,
     );
+
+    const isActive = !isComplete ? false : dto.isActive;
 
     // Store raw input in meta field for frontend display
     const meta = {
@@ -60,24 +70,27 @@ export class LinkValidatorService {
       rawInput: rawInput,
     };
 
-    return {
+    const processedLink: ProcessedLink = {
       title: finalTitle,
-      url: finalUrl,
+      url: finalUrl || undefined,
       isIncomplete: !isComplete,
       type: dto.type,
       orderIndex: dto.orderIndex,
-      isActive: !isComplete ? false : dto.isActive,
-      iconKey: dto.iconKey,
+      isActive: isActive,
       meta: meta,
+    };
+
+    return {
+      processedLink,
     };
   }
 
   /**
    * Processes an array of links
    * @param links - Array of link DTOs to process
-   * @returns Array of processed links
+   * @returns Array of processed link responses
    */
-  processLinks(links: CreateLinkDto[]): ProcessedLink[] {
+  processLinks(links: BaseLinkDto[]): ProcessedLinkResponse[] {
     return links.map(link => this.processLink(link));
   }
 
@@ -86,9 +99,9 @@ export class LinkValidatorService {
    * @param dto - The link data to validate
    * @returns True if the link is complete, false otherwise
    */
-  validateLink(dto: CreateLinkDto): boolean {
-    const processed = this.processLink(dto);
-    return !processed.isIncomplete;
+  validateLink(dto: BaseLinkDto): boolean {
+    const response = this.processLink(dto);
+    return !response.processedLink.isIncomplete;
   }
 
   /**
@@ -96,8 +109,9 @@ export class LinkValidatorService {
    * @param type - The link type
    * @returns The display name or undefined if type not found
    */
-  getDisplayNameForType(type: string): string | undefined {
-    const config = LinkConfig[type as LinkType];
+  getDisplayNameForType(type: LinkType): string | undefined {
+    const config = LinkConfig[type];
     return config?.displayName;
   }
+
 }
