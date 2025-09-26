@@ -11,6 +11,7 @@ import { UpdateCardLinkDto } from './dto/update.dto';
 import type { UsernameValidationResponse } from './types/cardlinks.types';
 import { AccountsService } from 'src/accounts/accounts.service';
 import { Account } from 'src/entities/account.entity';
+import { LinkValidatorService } from 'src/common/link-validator.service';
 
 @Injectable()
 export class CardLinksService {
@@ -19,6 +20,7 @@ export class CardLinksService {
     private readonly cardLinkRepository: Repository<CardLink>,
     private readonly dataSource: DataSource,
     private readonly accountsService: AccountsService,
+    private readonly linkValidatorService: LinkValidatorService,
   ) {}
 
   async getAll(userId: string): Promise<CardLink[]> {
@@ -86,12 +88,18 @@ export class CardLinksService {
   async create(userId: string, dto: CreateCardLinkDto): Promise<CardLink> {
     try {
       return this.dataSource.transaction(async (manager) => {
+        // Process links if they exist
+        let processedLinks = dto.links;
+        if (dto.links && dto.links.length > 0) {
+          processedLinks = this.linkValidatorService.processLinks(dto.links);
+        }
+
         const cardLink = manager.create(CardLink, {
           ...dto,
           owner: {
             id: userId,
           },
-          links: dto.links,
+          links: processedLinks,
         });
         // Save it within the transaction
         const savedCardLink = await manager.save(cardLink);

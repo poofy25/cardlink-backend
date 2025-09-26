@@ -1,26 +1,34 @@
-import { z } from 'zod';
-import { LinkType, LinkSchemas } from './link-schemas';
+import { LinkType } from './link-schemas';
+import { validateUrlForType } from './url-transformer';
 
 /**
- * Validates meta object against the link type schema
- * Returns typesafe object or throws error or returns null
+ * Checks if a link has all required data to be considered complete
+ * For most link types, this means having a title and a valid URL
+ * 
+ * @example
+ * // ❌ Incomplete - no title
+ * isLinkComplete('instagram', '', 'https://instagram.com/john')
+ * 
+ * @example
+ * // ❌ Incomplete - no URL
+ * isLinkComplete('instagram', 'My Instagram', '')
+ * 
+ * @example
+ * // ✅ Complete - has title and URL
+ * isLinkComplete('instagram', 'My Instagram', 'https://instagram.com/john')
  */
-export function validateLinkMeta<T extends LinkType>(
-  type: T,
-  meta: unknown,
-): z.infer<(typeof LinkSchemas)[T]> | null {
-  const schema = LinkSchemas[type];
-
-  if (!schema) {
-    throw new Error(`Unknown link type: ${type}`);
+export function isLinkComplete(type: LinkType, title?: string, url?: string): boolean {
+  // Check if title is provided and not empty
+  if (!title || title.trim().length === 0) {
+    return false;
   }
 
-  const result = schema.safeParse(meta);
-
-  if (result.success) {
-    return result.data as z.infer<(typeof LinkSchemas)[T]>;
+  // Check if URL is provided and not empty
+  if (!url || url.trim().length === 0) {
+    return false;
   }
 
-  // Return null for validation errors instead of throwing
-  return null;
+  // Validate that the URL is appropriate for the link type
+  return validateUrlForType(type, url);
 }
+

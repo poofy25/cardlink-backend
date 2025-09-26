@@ -35,6 +35,10 @@ export class Link {
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
 
+  // Whether the link has all required data to be complete
+  @Column({ type: 'boolean', default: true })
+  isIncomplete!: boolean;
+
   // Type of type (e.g., "instagram", "email", "map")
   @Column({ type: 'varchar', length: 64 })
   type!: string;
