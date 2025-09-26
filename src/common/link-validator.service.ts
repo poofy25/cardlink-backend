@@ -5,6 +5,28 @@ import { transformToUrl } from '../configs/links/url-transformer';
 import { LinkType } from '../configs/links/link-schemas';
 import { LinkConfig } from '../configs/links/link-config';
 
+export interface ValidationErrors {
+  title?: string;
+  rawInput?: string;
+}
+
+/**
+ * Validates the title field
+ * @param title - The title to validate
+ * @returns Error message if invalid, undefined if valid
+ */
+function validateTitle(title?: string): string | undefined {
+  if (!title || title.trim().length === 0) {
+    return 'Title is required';
+  }
+  
+  if (title.length > 160) {
+    return 'Title must be 160 characters or less';
+  }
+  
+  return undefined;
+}
+
 export interface ProcessedLink {
   title: string;
   url: string | undefined;
@@ -13,6 +35,7 @@ export interface ProcessedLink {
   orderIndex?: number;
   isActive?: boolean;
   meta?: Record<string, unknown>;
+  validationErrors?: ValidationErrors;
 }
 
 export interface ProcessedLinkResponse {
@@ -32,18 +55,19 @@ export class LinkValidatorService {
     // Get rawInput from meta.rawInput instead of url field
     const rawInput = (dto.meta?.rawInput as string) || '';
     
-    // Start with empty URL - only set if rawInput successfully transforms
-    let finalUrl: string | null = null;
+    // Validate title
+    const titleError = validateTitle(dto.title);
     
-    // Try to transform the rawInput into a valid URL
-    if (dto.type && rawInput) {
-      const transformedUrl = transformToUrl(dto.type, rawInput);
-
-      console.log('transformedUrl', transformedUrl);
-      // Only set the URL if transformation was successful
-      if (transformedUrl) {
-        finalUrl = transformedUrl;
-      }
+    // Transform and validate rawInput in one step
+    const transformResult = dto.type && rawInput ? transformToUrl(dto.type, rawInput) : { url: null, validationError: rawInput ? 'Input is required' : undefined };
+    
+    // Create validation errors object
+    const validationErrors: ValidationErrors = {};
+    if (titleError) {
+      validationErrors.title = titleError;
+    }
+    if (transformResult.validationError) {
+      validationErrors.rawInput = transformResult.validationError;
     }
 
     // Set title to displayName from config if no title provided
@@ -55,24 +79,25 @@ export class LinkValidatorService {
       }
     }
 
-    // Determine if the link is complete based on title and URL
+    // Determine if the link is complete based on title and rawInput
     const isComplete = isLinkComplete(
       dto.type,
       finalTitle,
-      finalUrl || undefined,
+      rawInput,
     );
 
     const isActive = !isComplete ? false : dto.isActive;
 
-    // Store raw input in meta field for frontend display
+    // Store raw input and validation errors in meta field for frontend display
     const meta = {
       ...dto.meta,
       rawInput: rawInput,
+      validationErrors: Object.keys(validationErrors).length > 0 ? validationErrors : undefined,
     };
 
     const processedLink: ProcessedLink = {
       title: finalTitle,
-      url: finalUrl || undefined,
+      url: transformResult.url || "",
       isIncomplete: !isComplete,
       type: dto.type,
       orderIndex: dto.orderIndex,

@@ -12,7 +12,7 @@ export type LinkType = LinkTypes;
 
 // Base meta schema that all link types share
 export const BaseMetaSchema = z.object({
-  rawInput: z.string().min(1).trim(),
+  rawInput: z.string().trim(),
 });
 
 // Meta schemas for different link types

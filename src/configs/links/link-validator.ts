@@ -1,5 +1,5 @@
 import { LinkType } from './link-schemas';
-import { validateUrlForType } from './url-transformer';
+import { transformToUrl } from './url-transformer';
 
 /**
  * Checks if a link has all required data to be considered complete
@@ -17,18 +17,19 @@ import { validateUrlForType } from './url-transformer';
  * // ✅ Complete - has title and URL
  * isLinkComplete('instagram', 'My Instagram', 'https://instagram.com/john')
  */
-export function isLinkComplete(type: LinkType, title?: string, url?: string): boolean {
+export function isLinkComplete(type: LinkType, title?: string, rawInput?: string): boolean {
   // Check if title is provided and not empty
   if (!title || title.trim().length === 0) {
     return false;
   }
 
-  // Check if URL is provided and not empty
-  if (!url || url.trim().length === 0) {
+  // Check if rawInput is provided and not empty
+  if (!rawInput || rawInput.trim().length === 0) {
     return false;
   }
 
-  // Validate that the URL is appropriate for the link type
-  return validateUrlForType(type, url);
+  // Try to transform the rawInput - if it succeeds, the link is complete
+  const result = transformToUrl(type, rawInput);
+  return result.url !== null;
 }
 

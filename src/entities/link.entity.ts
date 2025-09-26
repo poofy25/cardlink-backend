@@ -23,7 +23,7 @@ export class Link {
   @Column({ type: 'varchar', length: 160, nullable: true })
   title!: string;
 
-  // Default clickable URL (optional for map/address)
+  // Only the backend should set this, the frontend should not set this
   @Column({ type: 'varchar', length: 1024, nullable: true })
   url!: string | null;
 
@@ -44,7 +44,7 @@ export class Link {
   type!: string;
 
   // Flexible JSON field for type-specific data
-  // Examples: { username, phone, email, lat, lng, street, city, country }
+  // Examples: { rawInput, validationErrors: { title: "...", rawInput: "..." } }
   @Column({ type: 'jsonb', nullable: true })
   meta!: Record<string, unknown> | null;
 

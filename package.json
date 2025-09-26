@@ -23,7 +23,15 @@
     "migration:revert": "pnpm run typeorm migration:revert -d ./db/data-source.ts",
     "migration:generate": "pnpm run typeorm migration:generate ./db/migrations/NAME -d ./db/data-source.ts",
     "migration:create": "pnpm run typeorm migration:create ./db/migrations/NAME",
-    "migration:show": "pnpm run typeorm migration:show -d ./db/data-source.ts"
+    "migration:show": "pnpm run typeorm migration:show -d ./db/data-source.ts",
+    "validate:links": "ts-node -r tsconfig-paths/register scripts/validate-all-links.ts",
+    "validate:links:update": "ts-node -r tsconfig-paths/register scripts/update-links-validation.ts",
+    "validate:links:dry-run": "ts-node -r tsconfig-paths/register scripts/update-links-validation.ts --dry-run",
+    "validate:links:batch": "ts-node -r tsconfig-paths/register scripts/validate-links-batch.ts --batch-size=100",
+    "validate:links:batch:update": "ts-node -r tsconfig-paths/register scripts/validate-links-batch.ts --batch-size=100 --update",
+    "validate:links:batch:dry-run": "ts-node -r tsconfig-paths/register scripts/validate-links-batch.ts --batch-size=100 --update --dry-run",
+    "fix:links": "ts-node -r tsconfig-paths/register scripts/fix-links-meta.ts",
+    "fix:links:dry-run": "ts-node -r tsconfig-paths/register scripts/fix-links-meta.ts --dry-run"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

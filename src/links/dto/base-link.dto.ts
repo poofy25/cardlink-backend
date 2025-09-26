@@ -51,8 +51,8 @@ export abstract class BaseLinkDto {
   isActive?: boolean;
 
   @ApiProperty({
-    example: { color: '#3B82F6', description: 'GitHub profile' },
-    description: 'Additional metadata for the link',
+    example: { rawInput: 'john@example.com', validationErrors: { title: 'Title is required' } },
+    description: 'Additional metadata for the link including rawInput and validationErrors',
     required: false,
   })
   @IsOptional()

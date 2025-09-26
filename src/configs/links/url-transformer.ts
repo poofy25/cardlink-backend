@@ -47,62 +47,76 @@ function isDomain(value: string): boolean {
 
 /**
  * Transforms input into appropriate URL based on link type
- * Uses the simple config to determine how to transform
+ * Also validates the input and returns validation error if transformation fails
  */
-export function transformToUrl(type: LinkType, input: string): string | null {
+export function transformToUrl(type: LinkType, input: string): { url: string | null; validationError?: string } {
   if (!input || input.trim().length === 0) {
-    return null;
+    return { url: null, validationError: 'Input is required' };
   }
 
   const trimmedInput = input.trim();
 
-  // If it's already a URL, return as-is
+  // If it's already a URL, validate it's appropriate for the type
   if (isUrl(trimmedInput)) {
-    return trimmedInput;
+    const config = LinkConfig[type];
+    if (!config) {
+      return { url: null, validationError: 'Invalid link type' };
+    }
+    
+    if (config.validationPattern.test(trimmedInput)) {
+      return { url: trimmedInput };
+    } else {
+      return { url: null, validationError: `Please enter a valid ${config.displayName.toLowerCase()} URL` };
+    }
   }
 
   const config = LinkConfig[type];
   if (!config) {
-    return null;
+    return { url: null, validationError: 'Invalid link type' };
   }
 
   const { transform } = config;
 
   switch (transform.type) {
-    case 'username':
-      if (isUsername(trimmedInput)) {
-        const username = trimmedInput.startsWith('@') 
-          ? trimmedInput.slice(1) 
-          : trimmedInput;
-        return `${transform.baseUrl}/${username}`;
+    case 'username': {
+      if (!isUsername(trimmedInput)) {
+        return { url: null, validationError: 'Please enter a valid username (e.g., @username or username)' };
       }
-      break;
+      const username = trimmedInput.startsWith('@') 
+        ? trimmedInput.slice(1) 
+        : trimmedInput;
+      return { url: `${transform.baseUrl}/${username}` };
+    }
 
-    case 'email':
-      if (isEmail(trimmedInput)) {
-        return `${transform.protocol}${trimmedInput}`;
+    case 'email': {
+      if (!isEmail(trimmedInput)) {
+        return { url: null, validationError: 'Please enter a valid email address' };
       }
-      break;
+      return { url: `${transform.protocol}${trimmedInput}` };
+    }
 
-    case 'phone':
-      if (isPhoneNumber(trimmedInput)) {
-        const cleanNumber = trimmedInput.replace(/[\s\-()]/g, '');
-        return `${transform.protocol}${cleanNumber}`;
+    case 'phone': {
+      if (!isPhoneNumber(trimmedInput)) {
+        return { url: null, validationError: 'Please enter a valid phone number' };
       }
-      break;
+      const cleanNumber = trimmedInput.replace(/[\s\-()]/g, '');
+      return { url: `${transform.protocol}${cleanNumber}` };
+    }
 
-    case 'domain':
-      if (isDomain(trimmedInput)) {
-        return `https://${trimmedInput}`;
+    case 'domain': {
+      if (!isDomain(trimmedInput)) {
+        return { url: null, validationError: 'Please enter a valid domain (e.g., example.com)' };
       }
-      break;
+      return { url: `https://${trimmedInput}` };
+    }
   }
 
-  return null;
+  return { url: null, validationError: 'Invalid input format' };
 }
 
 /**
  * Validates if a URL is appropriate for the given link type
+ * @deprecated Use transformToUrl instead for validation and transformation
  */
 export function validateUrlForType(type: LinkType, url: string): boolean {
   if (!url || !isUrl(url)) {
