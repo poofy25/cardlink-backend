@@ -91,8 +91,8 @@ export class LinksService {
     try {
       const { ids } = dto;
 
-      if (!ids || ids.length !== 2) {
-        throw new BadRequestException('Exactly two ids are required');
+      if (!ids || ids.length === 0) {
+        throw new BadRequestException('At least one id is required');
       }
 
       const cardLink = await this.cardLinksRepository.findOne({
@@ -104,25 +104,27 @@ export class LinksService {
         throw new NotFoundException('Card link not found');
       }
 
-      const [idA, idB] = ids;
-      const links = cardLink.links;
-      const itemA = links.find((i) => i.id === idA);
-      const itemB = links.find((i) => i.id === idB);
-
-      if (!itemA || !itemB) {
-        throw new BadRequestException('Invalid link ids');
+      // Get all links for this cardLink
+      const allLinks = cardLink.links;
+      
+      // Validate that all provided IDs exist in the cardLink's links
+      const providedLinks = ids.map(id => allLinks.find(link => link.id === id));
+      if (providedLinks.some(link => !link)) {
+        throw new BadRequestException('Invalid link ids provided');
       }
 
-      // 🔄 swap their orderIndex values
-      const tempOrder = itemA.orderIndex;
-      itemA.orderIndex = itemB.orderIndex;
-      itemB.orderIndex = tempOrder;
-
-      await this.linksRepository.manager.transaction(async (manager) => {
-        await manager.save([itemA, itemB]);
+      // Update orderIndex for each link based on its position in the ids array
+      providedLinks.forEach((link, index) => {
+        if (link) {
+          link.orderIndex = index;
+        }
       });
 
-      // Return all links for the cardlink, not just the swapped ones
+      await this.linksRepository.manager.transaction(async (manager) => {
+        await manager.save(providedLinks);
+      });
+
+      // Return all links for the cardlink in the new order
       return this.linksRepository.find({
         where: { cardLink: { id: cardLinkId } },
         order: { orderIndex: 'ASC' },
@@ -130,6 +132,48 @@ export class LinksService {
     } catch (error: unknown) {
       console.error(error);
       throw new InternalServerErrorException('Failed to reorder links');
+    }
+  }
+
+  async deleteLink(
+    cardLinkId: string,
+    linkId: string,
+    userId: string,
+  ): Promise<{ deleted: boolean }> {
+    try {
+      const link = await this.linksRepository.findOne({
+        where: {
+          id: linkId,
+          cardLink: { id: cardLinkId, owner: { id: userId } },
+        },
+      });
+
+      if (!link) {
+        throw new NotFoundException('Link not found');
+      }
+
+      await this.linksRepository.manager.transaction(async (manager) => {
+        await manager.delete(Link, {
+          id: linkId,
+          cardLink: { id: cardLinkId, owner: { id: userId } },
+        });
+
+        const remainingLinks = await manager.find(Link, {
+          where: { cardLink: { id: cardLinkId, owner: { id: userId } } },
+          order: { orderIndex: 'ASC' },
+        });
+
+        remainingLinks.forEach((link, index) => {
+          link.orderIndex = index;
+        });
+
+        await manager.save(remainingLinks);
+      });
+
+      return { deleted: true };
+    } catch (error: unknown) {
+      console.error(error);
+      throw new InternalServerErrorException('Failed to delete link');
     }
   }
 }

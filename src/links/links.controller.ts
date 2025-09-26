@@ -1,4 +1,12 @@
-import { Body, Controller, Param, Post, Put, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Param,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
 import { LinksService } from './links.service';
 import { BaseLinkDto } from './dto/base-link.dto';
 import { Link } from 'src/entities/link.entity';
@@ -43,5 +51,16 @@ export class LinksController {
     @Body() dto: Partial<BaseLinkDto>,
   ): Promise<Link> {
     return this.linksService.update(cardLinkId, linkId, dto);
+  }
+
+  @Delete(':linkId')
+  @ApiOperation({ summary: 'Delete a link' })
+  @ApiOkResponse({ description: 'Deleted link' })
+  async deleteLink(
+    @Param('id') cardLinkId: string,
+    @Param('linkId') linkId: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<{ deleted: boolean }> {
+    return this.linksService.deleteLink(cardLinkId, linkId, req.user.id);
   }
 }
