@@ -23,7 +23,7 @@ export class Link {
   @Column({ type: 'varchar', length: 160, nullable: true })
   title!: string;
 
-  // Only the backend should set this, the frontend should not set this
+  // Only the backend should set this, the frontend should not set this, the frontend only reads this field
   @Column({ type: 'varchar', length: 1024, nullable: true })
   url!: string | null;
 
@@ -32,7 +32,7 @@ export class Link {
   orderIndex!: number;
 
   // Visibility toggle
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: false })
   isActive!: boolean;
 
   // Whether the link has all required data to be complete

@@ -1,11 +1,14 @@
+// IMPORTANT: THIS FILE SHOULD BE KEPT IN SYNC WITH THE FRONTEND CONFIG
+
+
 import { z } from 'zod';
 // Simplified link types - just the essentials
 export enum LinkTypes {
   INSTAGRAM = 'instagram',
   EMAIL = 'email',
   PHONE = 'phone',
-  WEBSITE = 'website',
   CUSTOM_LINK = 'custom-link',
+  FACEBOOK = 'facebook',
 }
 
 export type LinkType = LinkTypes;
@@ -26,11 +29,11 @@ export const LinkMetaSchemas: Record<LinkType, z.ZodObject<z.ZodRawShape>> = {
   [LinkTypes.PHONE]: BaseMetaSchema.extend({
     // Phone-specific meta fields can be added here
   }),
-  [LinkTypes.WEBSITE]: BaseMetaSchema.extend({
-    // Website-specific meta fields can be added here
-  }),
   [LinkTypes.CUSTOM_LINK]: BaseMetaSchema.extend({
     // Custom link-specific meta fields can be added here
+  }),
+  [LinkTypes.FACEBOOK]: BaseMetaSchema.extend({
+    // Facebook-specific meta fields can be added here
   }),
 } as const;
 
